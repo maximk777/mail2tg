@@ -1,0 +1,16 @@
+[Unit]
+Description=mail2tg — forward emails to Telegram
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/mail2tg
+EnvironmentFile=/opt/mail2tg/.env
+ExecStart=/opt/mail2tg/mail2tg run
+ExecStop=/opt/mail2tg/mail2tg stop
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
