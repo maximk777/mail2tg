@@ -21,6 +21,27 @@ pub fn truncate_chars(s: &str, max: usize) -> String {
 
 const TG_MAX_CHARS: usize = 4096;
 
+/// Truncate the assembled card to Telegram's 4096-char limit without leaving a
+/// dangling partial HTML entity at the tail (e.g. `&l` or `&`). All user content
+/// is HTML-escaped before assembly, so every `&` in the card starts a complete
+/// entity (`&lt;`/`&gt;`/`&amp;`). If the last `&` after truncation has no `;`
+/// following it, the cut landed mid-entity — drop back to just before that `&`
+/// so the HTML stays valid and Telegram does not reject it with a 400 (which,
+/// since the daemon now breaks the batch on delivery failure, would stall the
+/// whole mailbox).
+fn truncate_card(card: String) -> String {
+    if card.chars().count() <= TG_MAX_CHARS {
+        return card;
+    }
+    let mut out: String = card.chars().take(TG_MAX_CHARS).collect();
+    if let Some(amp) = out.rfind('&') {
+        if !out[amp..].contains(';') {
+            out.truncate(amp);
+        }
+    }
+    out
+}
+
 pub fn build_card(
     from_display: &str,
     subject: &str,
@@ -29,20 +50,14 @@ pub fn build_card(
     preview_chars: usize,
 ) -> String {
     let body_preview = truncate_chars(body, preview_chars);
-    let mut card = format!(
+    let card = format!(
         "📧 <b>Новое письмо</b>\n<b>От:</b> {}\n<b>Тема:</b> {}\n<b>Дата:</b> {}\n\n{}",
         html_escape(from_display),
         html_escape(subject),
         html_escape(date),
         html_escape(&body_preview),
     );
-    // Guarantee the card never exceeds Telegram's 4096-character limit.
-    // A pathological subject/from/body can still push past the limit after
-    // HTML-escaping; hard-truncate rather than letting the API return a 400.
-    if card.chars().count() > TG_MAX_CHARS {
-        card = card.chars().take(TG_MAX_CHARS).collect();
-    }
-    card
+    truncate_card(card)
 }
 
 #[cfg(test)]
@@ -86,5 +101,26 @@ mod tests {
             "card was {} chars, expected <= 4096",
             card.chars().count()
         );
+    }
+
+    #[test]
+    fn card_truncation_is_entity_safe() {
+        // ~2000 '<' chars each escape to "&lt;" (4 chars), pushing the card well
+        // past 4096; the cut is highly likely to land inside a "&lt;" entity.
+        let body = "<".repeat(2000);
+        let card = build_card("a@b.com", "subject", "2026-01-01", &body, 2000);
+        assert!(card.chars().count() <= 4096, "card was {} chars", card.chars().count());
+        // No dangling partial entity at the tail.
+        assert!(!card.ends_with('&'));
+        assert!(!card.ends_with("&l"));
+        assert!(!card.ends_with("&lt"));
+        // Robust check: the last '&' in the card must be followed by a ';'.
+        if let Some(amp) = card.rfind('&') {
+            assert!(
+                card[amp..].contains(';'),
+                "trailing '&' at {amp} is not a complete entity: {:?}",
+                &card[amp..]
+            );
+        }
     }
 }
