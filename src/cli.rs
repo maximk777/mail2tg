@@ -1,12 +1,13 @@
+use std::path::Path;
+
 use anyhow::{anyhow, Result};
 use dialoguer::{Confirm, Input, Password, Select};
 
-use crate::config::Settings;
 use crate::store::config_file::Mailbox;
 use crate::store::Store;
 
-fn load(settings: &Settings) -> Result<Store> {
-    Store::load(&settings.config_path, &settings.credentials_path)
+fn load(config_path: &Path, creds_path: &Path) -> Result<Store> {
+    Store::load(config_path, creds_path)
 }
 
 fn pick_mailbox(store: &Store) -> Result<Option<String>> {
@@ -23,8 +24,8 @@ fn pick_mailbox(store: &Store) -> Result<Option<String>> {
     Ok(Some(names[idx].clone()))
 }
 
-pub fn tgid_list(settings: &Settings) -> Result<()> {
-    let store = load(settings)?;
+pub fn tgid_list(config_path: &Path, creds_path: &Path) -> Result<()> {
+    let store = load(config_path, creds_path)?;
     if let Some(name) = pick_mailbox(&store)? {
         let mb = store.mailbox(&name).unwrap();
         println!("Access list for '{name}':");
@@ -38,8 +39,8 @@ pub fn tgid_list(settings: &Settings) -> Result<()> {
     Ok(())
 }
 
-pub fn tgid_add(settings: &Settings) -> Result<()> {
-    let mut store = load(settings)?;
+pub fn tgid_add(config_path: &Path, creds_path: &Path) -> Result<()> {
+    let mut store = load(config_path, creds_path)?;
     let name = match pick_mailbox(&store)? {
         Some(n) => n,
         None => return Ok(()),
@@ -66,8 +67,8 @@ pub fn tgid_add(settings: &Settings) -> Result<()> {
     Ok(())
 }
 
-pub fn tgid_remove(settings: &Settings) -> Result<()> {
-    let mut store = load(settings)?;
+pub fn tgid_remove(config_path: &Path, creds_path: &Path) -> Result<()> {
+    let mut store = load(config_path, creds_path)?;
     let name = match pick_mailbox(&store)? {
         Some(n) => n,
         None => return Ok(()),
@@ -89,8 +90,8 @@ pub fn tgid_remove(settings: &Settings) -> Result<()> {
     Ok(())
 }
 
-pub fn mailbox_list(settings: &Settings) -> Result<()> {
-    let store = load(settings)?;
+pub fn mailbox_list(config_path: &Path, creds_path: &Path) -> Result<()> {
+    let store = load(config_path, creds_path)?;
     if store.config.mailboxes.is_empty() {
         println!("No mailboxes configured.");
         return Ok(());
@@ -104,8 +105,8 @@ pub fn mailbox_list(settings: &Settings) -> Result<()> {
     Ok(())
 }
 
-pub fn mailbox_add(settings: &Settings) -> Result<()> {
-    let mut store = load(settings)?;
+pub fn mailbox_add(config_path: &Path, creds_path: &Path) -> Result<()> {
+    let mut store = load(config_path, creds_path)?;
     let name: String = Input::<String>::new()
         .with_prompt("Name")
         .interact_text()?;
@@ -158,8 +159,8 @@ pub fn mailbox_add(settings: &Settings) -> Result<()> {
     Ok(())
 }
 
-pub fn mailbox_remove(settings: &Settings) -> Result<()> {
-    let mut store = load(settings)?;
+pub fn mailbox_remove(config_path: &Path, creds_path: &Path) -> Result<()> {
+    let mut store = load(config_path, creds_path)?;
     let name = match pick_mailbox(&store)? {
         Some(n) => n,
         None => return Ok(()),

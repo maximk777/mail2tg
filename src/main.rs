@@ -59,19 +59,27 @@ fn main() {
 
 fn real_main() -> anyhow::Result<()> {
     let cli = Cli::parse();
-    let settings = config::from_env()?;
     match cli.command {
-        Command::Run => daemon::run(settings),
-        Command::Stop => control::stop(&settings.pid_path),
-        Command::Tgid { action } => match action {
-            TgidAction::Add => cli::tgid_add(&settings),
-            TgidAction::Remove => cli::tgid_remove(&settings),
-            TgidAction::List => cli::tgid_list(&settings),
-        },
-        Command::Mailbox { action } => match action {
-            MailboxAction::Add => cli::mailbox_add(&settings),
-            MailboxAction::Remove => cli::mailbox_remove(&settings),
-            MailboxAction::List => cli::mailbox_list(&settings),
-        },
+        // Only `run` needs TG_BOT_TOKEN / SENDER_DOMAINS.
+        Command::Run => daemon::run(config::from_env()?),
+        // `stop` only reads the pidfile path.
+        Command::Stop => control::stop(&config::pid_path_from_env()),
+        // CLI config commands only need the store file paths.
+        Command::Tgid { action } => {
+            let (c, cr) = config::store_paths_from_env();
+            match action {
+                TgidAction::Add => cli::tgid_add(&c, &cr),
+                TgidAction::Remove => cli::tgid_remove(&c, &cr),
+                TgidAction::List => cli::tgid_list(&c, &cr),
+            }
+        }
+        Command::Mailbox { action } => {
+            let (c, cr) = config::store_paths_from_env();
+            match action {
+                MailboxAction::Add => cli::mailbox_add(&c, &cr),
+                MailboxAction::Remove => cli::mailbox_remove(&c, &cr),
+                MailboxAction::List => cli::mailbox_list(&c, &cr),
+            }
+        }
     }
 }

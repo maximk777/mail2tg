@@ -6,6 +6,11 @@ use anyhow::{anyhow, Result};
 
 pub const DEFAULT_DDG: &str = r"(?i)^(.+?)_at_([a-z0-9.-]+)_[^@]+@duck\.com$";
 
+const DEFAULT_CONFIG: &str = "mail2tg.json";
+const DEFAULT_CREDENTIALS: &str = "mail2tg.credentials";
+const DEFAULT_PIDFILE: &str = "mail2tg.pid";
+const DEFAULT_STATE_DIR: &str = "./state";
+
 pub struct Settings {
     pub tg_bot_token: String,
     pub sender_domains: HashSet<String>,
@@ -16,6 +21,28 @@ pub struct Settings {
     pub credentials_path: PathBuf,
     pub pid_path: PathBuf,
     pub ddg_regex: String,
+}
+
+/// Returns `(config_path, credentials_path)` from env vars with defaults.
+/// Does NOT require any env var to be set — safe to call for any subcommand.
+pub fn store_paths_from_env() -> (PathBuf, PathBuf) {
+    let env_path = |key: &str, default: &str| -> PathBuf {
+        std::env::var(key).ok().filter(|v| !v.is_empty()).unwrap_or_else(|| default.to_string()).into()
+    };
+    (
+        env_path("MAIL2TG_CONFIG", DEFAULT_CONFIG),
+        env_path("MAIL2TG_CREDENTIALS", DEFAULT_CREDENTIALS),
+    )
+}
+
+/// Returns the pidfile path from env with default.
+/// Does NOT require any env var to be set — safe to call for any subcommand.
+pub fn pid_path_from_env() -> PathBuf {
+    std::env::var("MAIL2TG_PIDFILE")
+        .ok()
+        .filter(|v| !v.is_empty())
+        .unwrap_or_else(|| DEFAULT_PIDFILE.to_string())
+        .into()
 }
 
 pub fn from_env() -> Result<Settings> {
@@ -59,10 +86,10 @@ pub fn from_lookup<F: Fn(&str) -> Option<String>>(get: F) -> Result<Settings> {
         sender_domains,
         poll_interval: Duration::from_secs(poll_secs),
         body_preview_chars,
-        state_dir: path("STATE_DIR", "./state"),
-        config_path: path("MAIL2TG_CONFIG", "mail2tg.json"),
-        credentials_path: path("MAIL2TG_CREDENTIALS", "mail2tg.credentials"),
-        pid_path: path("MAIL2TG_PIDFILE", "mail2tg.pid"),
+        state_dir: path("STATE_DIR", DEFAULT_STATE_DIR),
+        config_path: path("MAIL2TG_CONFIG", DEFAULT_CONFIG),
+        credentials_path: path("MAIL2TG_CREDENTIALS", DEFAULT_CREDENTIALS),
+        pid_path: path("MAIL2TG_PIDFILE", DEFAULT_PIDFILE),
         ddg_regex: get("DDG_FROM_REGEX").filter(|v| !v.is_empty()).unwrap_or_else(|| DEFAULT_DDG.to_string()),
     })
 }
