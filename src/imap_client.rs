@@ -6,24 +6,20 @@ use rustls_connector::RustlsConnector;
 
 use crate::store::config_file::Mailbox;
 
-#[allow(dead_code)]
 pub struct RawMessage {
     pub uid: u32,
     pub body: Vec<u8>,
 }
 
-#[allow(dead_code)]
 pub trait MailSource {
     fn fetch_new(&mut self, last_uid: u32) -> Result<Vec<RawMessage>>;
 }
 
-#[allow(dead_code)]
 pub struct ImapMailbox<'a> {
     mailbox: &'a Mailbox,
     password: &'a str,
 }
 
-#[allow(dead_code)]
 impl<'a> ImapMailbox<'a> {
     pub fn new(mailbox: &'a Mailbox, password: &'a str) -> Self {
         ImapMailbox { mailbox, password }

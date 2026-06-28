@@ -4,26 +4,22 @@ use std::sync::Arc;
 
 use anyhow::{anyhow, Context, Result};
 
-#[allow(dead_code)]
 pub fn write_pidfile(path: &Path) -> Result<()> {
     std::fs::write(path, std::process::id().to_string())
         .with_context(|| format!("writing pidfile {}", path.display()))?;
     Ok(())
 }
 
-#[allow(dead_code)]
 pub fn read_pid(path: &Path) -> Result<i32> {
     let text = std::fs::read_to_string(path)
         .with_context(|| format!("reading pidfile {}", path.display()))?;
     text.trim().parse::<i32>().map_err(|_| anyhow!("invalid pid in {}", path.display()))
 }
 
-#[allow(dead_code)]
 pub fn remove_pidfile(path: &Path) {
     let _ = std::fs::remove_file(path);
 }
 
-#[allow(dead_code)]
 pub fn stop(path: &Path) -> Result<()> {
     let pid = read_pid(path)?;
     let rc = unsafe { libc::kill(pid, libc::SIGTERM) };
@@ -33,7 +29,6 @@ pub fn stop(path: &Path) -> Result<()> {
     Ok(())
 }
 
-#[allow(dead_code)]
 pub fn install_signal_handler(flag: Arc<AtomicBool>) -> Result<()> {
     signal_hook::flag::register(signal_hook::consts::SIGTERM, Arc::clone(&flag))?;
     signal_hook::flag::register(signal_hook::consts::SIGINT, Arc::clone(&flag))?;

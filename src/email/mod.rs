@@ -4,7 +4,6 @@ pub mod sender;
 
 use mail_parser::MessageParser;
 
-#[allow(dead_code)]
 pub struct ParsedEmail {
     pub from_addr: String,
     pub recipients: Vec<String>,
@@ -54,7 +53,6 @@ fn strip_html(html: &str) -> String {
     result
 }
 
-#[allow(dead_code)]
 pub fn parse_email(raw: &[u8]) -> Option<ParsedEmail> {
     let msg = MessageParser::default().parse(raw)?;
 

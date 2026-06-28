@@ -8,7 +8,6 @@ use anyhow::{anyhow, Result};
 use config_file::{ConfigFile, Mailbox};
 use credentials::Credentials;
 
-#[allow(dead_code)]
 pub struct Store {
     pub config: ConfigFile,
     pub creds: Credentials,
@@ -17,13 +16,11 @@ pub struct Store {
     creds_path: PathBuf,
 }
 
-#[allow(dead_code)]
 pub struct Usable {
     pub mailbox: Mailbox,
     pub password: String,
 }
 
-#[allow(dead_code)]
 impl Store {
     pub fn load(config_path: &Path, creds_path: &Path) -> Result<Store> {
         let config = ConfigFile::load(config_path)?;

@@ -5,13 +5,11 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 
-#[allow(dead_code)]
 #[derive(Default)]
 pub struct Credentials {
     map: BTreeMap<String, String>,
 }
 
-#[allow(dead_code)]
 impl Credentials {
     pub fn get(&self, name: &str) -> Option<&str> {
         self.map.get(name).map(|s| s.as_str())

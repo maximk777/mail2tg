@@ -3,7 +3,6 @@ use std::collections::HashSet;
 use anyhow::{anyhow, Result};
 use serde_json::Value;
 
-#[allow(dead_code)]
 pub struct Update {
     pub update_id: i64,
     pub chat_id: Option<i64>,
@@ -30,14 +29,12 @@ pub fn parse_updates(v: &Value) -> Vec<Update> {
     out
 }
 
-#[allow(dead_code)]
 fn sorted_domains(domains: &HashSet<String>) -> String {
     let mut v: Vec<&str> = domains.iter().map(String::as_str).collect();
     v.sort_unstable();
     v.join(", ")
 }
 
-#[allow(dead_code)]
 pub fn start_reply(in_whitelist: bool, chat_id: i64, sender_domains: &HashSet<String>) -> Option<String> {
     if in_whitelist {
         Some(format!(
@@ -52,7 +49,6 @@ pub fn start_reply(in_whitelist: bool, chat_id: i64, sender_domains: &HashSet<St
 }
 
 /// Returns `Some(reply)` only when `text` is exactly `"/start"` (trimmed).
-#[allow(dead_code)]
 pub fn start_reply_for_text(
     text: &str,
     in_whitelist: bool,
@@ -66,24 +62,20 @@ pub fn start_reply_for_text(
     }
 }
 
-#[allow(dead_code)]
 pub trait TelegramApi: Send + Sync {
     fn send_message(&self, chat_id: i64, html: &str) -> Result<()>;
     fn get_updates(&self, offset: i64, timeout_secs: u32) -> Result<Vec<Update>>;
 }
 
-#[allow(dead_code)]
 pub struct TgClient {
     token: String,
 }
 
 impl TgClient {
-    #[allow(dead_code)]
     pub fn new(token: &str) -> TgClient {
         TgClient { token: token.to_string() }
     }
 
-    #[allow(dead_code)]
     fn url(&self, method: &str) -> String {
         format!("https://api.telegram.org/bot{}/{}", self.token, method)
     }

@@ -1,4 +1,3 @@
-#[allow(dead_code)]
 pub fn recipient_matches(targets: &[String], candidates: &[String]) -> bool {
     targets.iter().any(|target| {
         let target = target.trim();

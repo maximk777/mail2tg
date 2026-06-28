@@ -11,7 +11,6 @@ fn default_folder() -> String {
     "INBOX".to_string()
 }
 
-#[allow(dead_code)]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Mailbox {
     pub name: String,
@@ -27,7 +26,6 @@ pub struct Mailbox {
     pub whitelist: Vec<i64>,
 }
 
-#[allow(dead_code)]
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct ConfigFile {
     #[serde(default)]
@@ -35,7 +33,6 @@ pub struct ConfigFile {
 }
 
 impl ConfigFile {
-    #[allow(dead_code)]
     pub fn load(path: &Path) -> Result<ConfigFile> {
         match std::fs::read_to_string(path) {
             Ok(text) => serde_json::from_str(&text)
@@ -45,7 +42,6 @@ impl ConfigFile {
         }
     }
 
-    #[allow(dead_code)]
     pub fn save(&self, path: &Path) -> Result<()> {
         let dir = path
             .parent()

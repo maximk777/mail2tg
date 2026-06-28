@@ -2,18 +2,11 @@ use std::collections::HashSet;
 
 use regex::Regex;
 
-#[allow(dead_code)]
 pub struct Sender {
     pub address: String,
     pub domain: String,
 }
 
-#[allow(dead_code)]
-pub fn default_ddg_regex() -> &'static str {
-    crate::config::DEFAULT_DDG
-}
-
-#[allow(dead_code)]
 pub fn parse_sender(from_addr: &str, ddg: &Regex) -> Option<Sender> {
     let addr = from_addr.trim().to_lowercase();
     if let Some(caps) = ddg.captures(&addr) {
@@ -28,7 +21,6 @@ pub fn parse_sender(from_addr: &str, ddg: &Regex) -> Option<Sender> {
     Some(Sender { address: addr.clone(), domain: domain.to_string() })
 }
 
-#[allow(dead_code)]
 pub fn domain_matches(domain: &str, allowed: &HashSet<String>) -> bool {
     let d = domain.to_lowercase();
     allowed.iter().any(|a| {
@@ -45,7 +37,7 @@ mod tests {
     use regex::Regex;
     use std::collections::HashSet;
 
-    fn re() -> Regex { Regex::new(default_ddg_regex()).unwrap() }
+    fn re() -> Regex { Regex::new(crate::config::DEFAULT_DDG).unwrap() }
 
     #[test]
     fn ddg_address_decoded() {

@@ -1,4 +1,3 @@
-#[allow(dead_code)]
 pub fn html_escape(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
@@ -12,7 +11,6 @@ pub fn html_escape(s: &str) -> String {
     out
 }
 
-#[allow(dead_code)]
 pub fn truncate_chars(s: &str, max: usize) -> String {
     let mut out: String = s.chars().take(max).collect();
     if s.chars().count() > max {
@@ -21,7 +19,6 @@ pub fn truncate_chars(s: &str, max: usize) -> String {
     out
 }
 
-#[allow(dead_code)]
 pub fn build_card(
     from_display: &str,
     subject: &str,

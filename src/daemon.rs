@@ -17,14 +17,12 @@ use crate::store::config_file::Mailbox;
 use crate::store::Store;
 use crate::telegram::{start_reply_for_text, TelegramApi, TgClient};
 
-#[allow(dead_code)]
 pub enum Outcome {
     Skipped,
     Forwarded,
     DeliveryFailed,
 }
 
-#[allow(dead_code)]
 pub fn process_message(
     msg: &RawMessage,
     mailbox: &Mailbox,
@@ -83,7 +81,6 @@ pub fn process_message(
     }
 }
 
-#[allow(dead_code)]
 fn now_ts() -> i64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -91,7 +88,6 @@ fn now_ts() -> i64 {
         .unwrap_or(0)
 }
 
-#[allow(dead_code)]
 fn poll_mailbox(
     mailbox: &Mailbox,
     password: &str,
@@ -112,7 +108,6 @@ fn poll_mailbox(
     Ok(())
 }
 
-#[allow(dead_code)]
 fn spawn_telegram_thread(
     settings: Arc<Settings>,
     stop: Arc<AtomicBool>,
@@ -159,7 +154,6 @@ fn spawn_telegram_thread(
     })
 }
 
-#[allow(dead_code)]
 pub fn run(settings: Settings) -> Result<()> {
     let settings = Arc::new(settings);
     let stop = Arc::new(AtomicBool::new(false));

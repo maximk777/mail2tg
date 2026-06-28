@@ -4,10 +4,8 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Result};
 
-#[allow(dead_code)]
 pub const DEFAULT_DDG: &str = r"(?i)^(.+?)_at_([a-z0-9.-]+)_[^@]+@duck\.com$";
 
-#[allow(dead_code)]
 pub struct Settings {
     pub tg_bot_token: String,
     pub sender_domains: HashSet<String>,
@@ -20,12 +18,10 @@ pub struct Settings {
     pub ddg_regex: String,
 }
 
-#[allow(dead_code)]
 pub fn from_env() -> Result<Settings> {
     from_lookup(|k| std::env::var(k).ok())
 }
 
-#[allow(dead_code)]
 pub fn from_lookup<F: Fn(&str) -> Option<String>>(get: F) -> Result<Settings> {
     let tg_bot_token = get("TG_BOT_TOKEN")
         .filter(|v| !v.trim().is_empty())

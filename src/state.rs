@@ -1,23 +1,19 @@
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-#[allow(dead_code)]
 pub struct MailboxState {
     pub last_uid: u32,
     pub baseline_ts: i64,
 }
 
-#[allow(dead_code)]
 pub fn path(dir: &Path, name: &str) -> PathBuf {
     dir.join(format!("{name}.txt"))
 }
 
-#[allow(dead_code)]
 pub fn serialize(state: &MailboxState) -> String {
     format!("last_uid={}\nbaseline_ts={}\n", state.last_uid, state.baseline_ts)
 }
 
-#[allow(dead_code)]
 pub fn parse(text: &str) -> MailboxState {
     let mut last_uid = 0u32;
     let mut baseline_ts = 0i64;
@@ -33,7 +29,6 @@ pub fn parse(text: &str) -> MailboxState {
     MailboxState { last_uid, baseline_ts }
 }
 
-#[allow(dead_code)]
 pub fn save(dir: &Path, name: &str, state: &MailboxState) -> std::io::Result<()> {
     std::fs::create_dir_all(dir)?;
     let final_path = path(dir, name);
@@ -46,7 +41,6 @@ pub fn save(dir: &Path, name: &str, state: &MailboxState) -> std::io::Result<()>
     std::fs::rename(&tmp, &final_path)
 }
 
-#[allow(dead_code)]
 pub fn load(dir: &Path, name: &str, now_ts: i64) -> std::io::Result<MailboxState> {
     let p = path(dir, name);
     match std::fs::read_to_string(&p) {

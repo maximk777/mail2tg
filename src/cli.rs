@@ -23,7 +23,6 @@ fn pick_mailbox(store: &Store) -> Result<Option<String>> {
     Ok(Some(names[idx].clone()))
 }
 
-#[allow(dead_code)]
 pub fn tgid_list(settings: &Settings) -> Result<()> {
     let store = load(settings)?;
     if let Some(name) = pick_mailbox(&store)? {
@@ -39,7 +38,6 @@ pub fn tgid_list(settings: &Settings) -> Result<()> {
     Ok(())
 }
 
-#[allow(dead_code)]
 pub fn tgid_add(settings: &Settings) -> Result<()> {
     let mut store = load(settings)?;
     let name = match pick_mailbox(&store)? {
@@ -68,7 +66,6 @@ pub fn tgid_add(settings: &Settings) -> Result<()> {
     Ok(())
 }
 
-#[allow(dead_code)]
 pub fn tgid_remove(settings: &Settings) -> Result<()> {
     let mut store = load(settings)?;
     let name = match pick_mailbox(&store)? {
@@ -92,7 +89,6 @@ pub fn tgid_remove(settings: &Settings) -> Result<()> {
     Ok(())
 }
 
-#[allow(dead_code)]
 pub fn mailbox_list(settings: &Settings) -> Result<()> {
     let store = load(settings)?;
     if store.config.mailboxes.is_empty() {
@@ -108,7 +104,6 @@ pub fn mailbox_list(settings: &Settings) -> Result<()> {
     Ok(())
 }
 
-#[allow(dead_code)]
 pub fn mailbox_add(settings: &Settings) -> Result<()> {
     let mut store = load(settings)?;
     let name: String = Input::<String>::new()
@@ -163,7 +158,6 @@ pub fn mailbox_add(settings: &Settings) -> Result<()> {
     Ok(())
 }
 
-#[allow(dead_code)]
 pub fn mailbox_remove(settings: &Settings) -> Result<()> {
     let mut store = load(settings)?;
     let name = match pick_mailbox(&store)? {
