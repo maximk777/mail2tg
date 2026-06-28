@@ -19,6 +19,8 @@ pub fn truncate_chars(s: &str, max: usize) -> String {
     out
 }
 
+const TG_MAX_CHARS: usize = 4096;
+
 pub fn build_card(
     from_display: &str,
     subject: &str,
@@ -27,13 +29,20 @@ pub fn build_card(
     preview_chars: usize,
 ) -> String {
     let body_preview = truncate_chars(body, preview_chars);
-    format!(
+    let mut card = format!(
         "📧 <b>Новое письмо</b>\n<b>От:</b> {}\n<b>Тема:</b> {}\n<b>Дата:</b> {}\n\n{}",
         html_escape(from_display),
         html_escape(subject),
         html_escape(date),
         html_escape(&body_preview),
-    )
+    );
+    // Guarantee the card never exceeds Telegram's 4096-character limit.
+    // A pathological subject/from/body can still push past the limit after
+    // HTML-escaping; hard-truncate rather than letting the API return a 400.
+    if card.chars().count() > TG_MAX_CHARS {
+        card = card.chars().take(TG_MAX_CHARS).collect();
+    }
+    card
 }
 
 #[cfg(test)]
@@ -66,5 +75,16 @@ mod tests {
         let body = "x".repeat(50);
         let card = build_card("a@b.com", "s", "d", &body, 10);
         assert!(card.contains(&format!("{}…", "x".repeat(10))));
+    }
+
+    #[test]
+    fn card_never_exceeds_tg_limit() {
+        let body = "y".repeat(10_000);
+        let card = build_card("a@b.com", "subject", "2026-01-01", &body, 10_000);
+        assert!(
+            card.chars().count() <= 4096,
+            "card was {} chars, expected <= 4096",
+            card.chars().count()
+        );
     }
 }
