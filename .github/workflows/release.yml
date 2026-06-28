@@ -3,10 +3,14 @@ on:
   push:
     tags: ["v*"]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         target:
           - x86_64-unknown-linux-musl
@@ -23,7 +27,22 @@ jobs:
         run: |
           mkdir -p dist
           cp target/${{ matrix.target }}/release/mail2tg dist/mail2tg-${{ matrix.target }}
-      - name: Upload to release
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mail2tg-${{ matrix.target }}
+          path: dist/mail2tg-${{ matrix.target }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/mail2tg-${{ matrix.target }}
+          files: dist/*
