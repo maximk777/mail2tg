@@ -1,7 +1,7 @@
 /target
 **/*.rs.bk
 /state/
-bot.json
-bot.credentials
-bot.pid
+mail2tg.json
+mail2tg.credentials
+mail2tg.pid
 .env
