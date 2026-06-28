@@ -100,9 +100,12 @@ fn poll_mailbox(
     let messages = src.fetch_new(st.last_uid)?;
     for msg in &messages {
         let before = st.last_uid;
-        let _ = process_message(msg, mailbox, settings, ddg, tg, &mut st);
+        let outcome = process_message(msg, mailbox, settings, ddg, tg, &mut st);
         if st.last_uid != before {
             state::save(&settings.state_dir, &mailbox.name, &st)?;
+        }
+        if matches!(outcome, Outcome::DeliveryFailed) {
+            break; // do not advance past an undelivered message; retry next cycle
         }
     }
     Ok(())
@@ -323,5 +326,57 @@ mod tests {
         assert!(matches!(out, Outcome::Skipped));
         assert_eq!(tg.sent.lock().unwrap().len(), 0);
         assert_eq!(st.last_uid, 8); // advanced, no panic
+    }
+
+    /// Prove that a batch [uid5→DeliveryFailed, uid6→would succeed] leaves last_uid
+    /// at its pre-batch value and never attempts uid6.
+    #[test]
+    fn batch_stops_at_first_delivery_failure() {
+        // Fails on the first two send calls (uid5's two whitelist entries), then
+        // would succeed — but we must never reach uid6.
+        struct TrackingTg {
+            call_count: Mutex<u32>,
+            sent: Mutex<Vec<(i64, String)>>,
+        }
+        impl TelegramApi for TrackingTg {
+            fn send_message(&self, chat_id: i64, html: &str) -> anyhow::Result<()> {
+                let mut n = self.call_count.lock().unwrap();
+                *n += 1;
+                if *n <= 2 {
+                    // uid5 has a 2-entry whitelist; fail both
+                    return Err(anyhow::anyhow!("boom"));
+                }
+                drop(n);
+                self.sent.lock().unwrap().push((chat_id, html.to_string()));
+                Ok(())
+            }
+            fn get_updates(&self, _o: i64, _t: u32) -> anyhow::Result<Vec<Update>> {
+                Ok(vec![])
+            }
+        }
+
+        let tg = TrackingTg { call_count: Mutex::new(0), sent: Mutex::new(vec![]) };
+        let mut st = crate::state::MailboxState { last_uid: 4, baseline_ts: 0 };
+        let messages = vec![raw(5), raw(6)];
+
+        // Replicate the poll_mailbox inner loop (state::save skipped — no real dir needed).
+        for msg in &messages {
+            let before = st.last_uid;
+            let outcome = process_message(msg, &mailbox(), &settings(), &re(), &tg, &mut st);
+            let _ = before;
+            if matches!(outcome, Outcome::DeliveryFailed) {
+                break;
+            }
+        }
+
+        // uid5 triggered 2 send calls (both failed) → DeliveryFailed → break.
+        // uid6 must never have been attempted.
+        assert_eq!(st.last_uid, 4, "last_uid must not advance past a delivery failure");
+        assert_eq!(
+            *tg.call_count.lock().unwrap(),
+            2,
+            "uid 6 must not be attempted; only uid5's 2 whitelist sends should occur"
+        );
+        assert!(tg.sent.lock().unwrap().is_empty(), "no successful sends expected");
     }
 }
