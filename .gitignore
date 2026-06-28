@@ -1,0 +1,7 @@
+/target
+**/*.rs.bk
+/state/
+bot.json
+bot.credentials
+bot.pid
+.env
