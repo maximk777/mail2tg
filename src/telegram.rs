@@ -81,6 +81,20 @@ impl TgClient {
     }
 }
 
+/// Map a `ureq::Error` to an `anyhow::Error` that never includes the request
+/// URL (which contains `/bot<TOKEN>/`). Only the HTTP status code or the
+/// transport error *kind* (an enum variant name) is logged.
+fn tg_error(method: &str, e: ureq::Error) -> anyhow::Error {
+    match e {
+        ureq::Error::Status(code, _resp) => {
+            anyhow::anyhow!("telegram {method} failed: HTTP {code}")
+        }
+        ureq::Error::Transport(t) => {
+            anyhow::anyhow!("telegram {method} transport error: {:?}", t.kind())
+        }
+    }
+}
+
 impl TelegramApi for TgClient {
     fn send_message(&self, chat_id: i64, html: &str) -> Result<()> {
         let resp: Value = ureq::post(&self.url("sendMessage"))
@@ -89,7 +103,8 @@ impl TelegramApi for TgClient {
                 "text": html,
                 "parse_mode": "HTML",
                 "disable_web_page_preview": true
-            }))?
+            }))
+            .map_err(|e| tg_error("sendMessage", e))?
             .into_json()?;
         if resp.get("ok").and_then(|x| x.as_bool()) == Some(true) {
             Ok(())
@@ -103,7 +118,8 @@ impl TelegramApi for TgClient {
             .query("offset", &offset.to_string())
             .query("timeout", &timeout_secs.to_string())
             .timeout(std::time::Duration::from_secs(u64::from(timeout_secs) + 10))
-            .call()?
+            .call()
+            .map_err(|e| tg_error("getUpdates", e))?
             .into_json()?;
         Ok(parse_updates(&resp))
     }
